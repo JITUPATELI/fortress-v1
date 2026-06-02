@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Leaderboard v1.0</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🏆 Global Leaderboard</h1>
+    <p>v1.0 - Ngome Imefunguliwa</p>
+    
+    <div class="form-box">
+      <input type="text" id="playerName" placeholder="Weka jina lako" maxlength="20">
+      <input type="number" id="playerScore" placeholder="Alama zako">
+      <button onclick="addScore()">Tuma Alama</button>
+    </div>
+
+    <div id="leaderboard">
+      <h2>Top 10 Dunia</h2>
+      <ol id="scoreList"></ol>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "WEKA-API-KEY-YAKO",
+      authDomain: "WEKA-AUTH-DOMAIN",
+      projectId: "WEKA-PROJECT-ID",
+      storageBucket: "WEKA-STORAGE-BUCKET",
+      messagingSenderId: "WEKA-SENDER-ID",
+      appId: "WEKA-APP-ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.addScore = async function() {
+      const name = document.getElementById('playerName').value;
+      const score = parseInt(document.getElementById('playerScore').value);
+      
+      if(!name || !score) {
+        alert('Jaza jina na alama!');
+        return;
+      }
+
+      await addDoc(collection(db, "scores"), {
+        name: name,
+        score: score,
+        time: serverTimestamp()
+      });
+      
+      document.getElementById('playerName').value = '';
+      document.getElementById('playerScore').value = '';
+      loadScores();
+    }
+
+    async function loadScores() {
+      const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(10));
+      const querySnapshot = await getDocs(q);
+      const list = document.getElementById('scoreList');
+      list.innerHTML = '';
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        list.innerHTML += `<li><span>${data.name}</span><span>${data.score}</span></li>`;
+      });
+    }
+
+    loadScores();
+  </script>
+</body>
+</html>
